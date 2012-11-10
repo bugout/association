@@ -14,5 +14,5 @@ public abstract class LargeItemSetFinder {
 		this.minsupp = minsupp;
 	}
 	
-	public abstract List<LargeItemSet> findLargeItemSets();
+	public abstract List<List<LargeItemSet>> findLargeItemSets();
 }

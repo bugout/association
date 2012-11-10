@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import data.Database;
 import data.Field;
-import data.FieldInfo;
 import data.Database.RecordIterator;
 import data.Record;
 
@@ -43,8 +41,9 @@ public class AprioriFinder extends LargeItemSetFinder {
 		for (int i = 0; i < db.columnCount(); i++) {
 			for (Map.Entry<Integer, Integer> count : counts.get(i).entrySet()) {
 				if (count.getValue() >= minsupp) {
-					LargeItemSet set = new LargeItemSet();
-					set.addItem(i, count.getKey());
+					Map<Integer, Integer> items = new HashMap<Integer, Integer>();
+					items.put(i, count.getKey());
+					LargeItemSet set = new LargeItemSet(items, count.getValue());
 					initSet.add(set);
 				}
 			}
@@ -54,13 +53,13 @@ public class AprioriFinder extends LargeItemSetFinder {
 	}
 	
 	@Override
-	public List<LargeItemSet> findLargeItemSets() {
+	public List<List<LargeItemSet>> findLargeItemSets() {
 		List<List<LargeItemSet>> largeItemSets = new ArrayList<List<LargeItemSet>>(); 
 		largeItemSets.add(initializeItemSets());
 		
 		int k = 0;
 		while (largeItemSets.get(k).size() > 0) {
-			List<LargeItemSet> candidates = generateCandidates(largeItemSets.get(k));
+			List<LargeItemSet> candidates = generateCandidates(largeItemSets.get(k), k+1);
 			
 			List<LargeItemSet> large = verify(candidates);
 			
@@ -69,21 +68,64 @@ public class AprioriFinder extends LargeItemSetFinder {
 			k++;
 		}
 		
-		List<LargeItemSet> allItemSets = new ArrayList<LargeItemSet>();
-		for (List<LargeItemSet> sets : largeItemSets) {
-			allItemSets.addAll(sets);
-		}
-		return allItemSets;
+		return largeItemSets;
 	}
 
 	private List<LargeItemSet> verify(List<LargeItemSet> candidates) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+		Map<LargeItemSet, Integer> supports = new HashMap<LargeItemSet, Integer>();
+		for (LargeItemSet s : candidates) {
+			supports.put(s, 0);		
+		}
+		
+		RecordIterator iter = db.getRecordIterator();
+		
+		while (iter.hasNext()) {
+			Record r = iter.next();
+			List<LargeItemSet> sets = setsInRecord(candidates, r);
+			for (LargeItemSet set : sets) {
+				supports.put(set, supports.get(set) + 1);
+			}
+		}
 
-	private List<LargeItemSet> generateCandidates(List<LargeItemSet> list) {
-		// TODO Auto-generated method stub
-		return null;
+		List<LargeItemSet> results = new ArrayList<LargeItemSet>();
+		for (Map.Entry<LargeItemSet, Integer> setsup : supports.entrySet()) {
+			if (setsup.getValue() > minsupp) {
+				setsup.getKey().setSupport(setsup.getValue());
+				results.add(setsup.getKey());			
+			}
+		}
+		
+		return results;
+	}
+	
+	private List<LargeItemSet> setsInRecord(List<LargeItemSet> candidates, Record r) {
+		List<LargeItemSet> sets = new ArrayList<LargeItemSet>();
+		for (LargeItemSet set : candidates) {
+			if (set.isInRecord(r)) {
+				sets.add(set);
+			}
+		}
+		return sets;
+	}
+	
+
+	/*
+	 * Generate candidate large item sets for round k+1, using large item sets in round k
+	 */
+	private List<LargeItemSet> generateCandidates(List<LargeItemSet> list, int size) {
+				
+		List<LargeItemSet> candidates = new ArrayList<LargeItemSet>();
+		
+		for (LargeItemSet setA : list) {
+			for (LargeItemSet setB : list) {
+				LargeItemSet joinSet = LargeItemSet.join(setA, setB);
+				if (joinSet != null && joinSet.size() == size) {
+					candidates.add(joinSet);
+				}
+			}
+		}
+		
+		return candidates;
 	}
 
 }

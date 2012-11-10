@@ -18,4 +18,8 @@ public class Record {
 	public Vector<Field> getFields() {
 		return fields;
 	}
+	
+	public int getFieldValue(int fieldIdx) {
+		return fields.get(fieldIdx).getValue();
+	}
 }
