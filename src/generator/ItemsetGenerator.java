@@ -15,9 +15,12 @@ public class ItemsetGenerator {
 	//seed for kth iteration
 	private List<Itemset> seed;
 	
+	private List<Rule> rules;
+	
 	public ItemsetGenerator() {
 		transactions = new ArrayList<Itemset>();
 		largeItemSets = new ArrayList<Itemset>();
+		rules = new ArrayList<Rule>();
 	}
 	
 	public void generateAssociations(String fileName, double min_support, double min_conf) {
@@ -59,6 +62,14 @@ public class ItemsetGenerator {
 		System.out.println("All Large Itemsets:");
 		for (Itemset is : largeItemSets) {
 			System.out.println(is.toString());
+		}
+		
+		//evaluate all the association rules
+		for (Itemset is : largeItemSets)
+			generateRules(is, min_conf);
+		
+		for (Rule rule : rules) {
+			System.out.println(rule.toString());
 		}
 	}
 		
@@ -250,6 +261,59 @@ public class ItemsetGenerator {
 		return support/totalTransactions;
 	}
 
+	private void generateRules(Itemset is, double min_conf) {
+		
+		//for each largeItemSet, generate rules
+		//according to project description, rhs should only contain 1 string
+		
+		Set<String> items = is.getItems();
+		
+		for (String s : items) {
+			Itemset rhs = new Itemset();
+			rhs.addElement(s);
+			
+			//evaluate all the rhsCandidates -> needs enhancement
+			Itemset lhs = new Itemset();
+			
+			for (String str : items)
+				if (s != str)
+					lhs.addElement(str);
+			
+			if ((calculateConfidence(lhs, rhs)) >= min_conf)
+			{
+				System.out.println("Adding new rule");
+				System.out.println(lhs.toString());
+				System.out.println(rhs.toString());
+				rules.add(new Rule(lhs, rhs));
+			}
+		}
+
+	}
+	
+	private double calculateConfidence(Itemset lhs, Itemset rhs) {
+	
+		double confidence = 0.0;
+	
+		//calculate support for lhs U rhs
+		Itemset union = new Itemset();
+		
+		for (String s : lhs.getItems())
+			union.addElement(s);
+		
+		for (String s : rhs.getItems())
+			union.addElement(s);
+		
+		double unionSupport = calculateSupport(union);
+	
+		//calculate support for rhs
+		double rhsSupport = calculateSupport(rhs);
+		
+		confidence = unionSupport/rhsSupport;
+		
+		System.out.println(confidence);
+		return confidence;
+	}
+	
 	public static void main(String[] args) {
 		ItemsetGenerator generator = new ItemsetGenerator();
 		generator.generateAssociations("integrated-dataset.csv", 0.4, 0.5);
