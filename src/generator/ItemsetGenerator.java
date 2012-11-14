@@ -105,6 +105,7 @@ public class ItemsetGenerator {
 		for (Itemset p : seed)
 		{
 			for (Itemset q : seed) {
+				//do a self test
 				if (p != q)
 				{
 					boolean join = true;
@@ -117,6 +118,7 @@ public class ItemsetGenerator {
 					Iterator<String> q_itr = q_set.iterator();
 					
 					//compare sets from 0 to k-2 elements while join is true
+					//each itemset in seed should contain k-1 items
 					for (int i = 0; i < k - 2 && join; ++i) {
 						if (p_itr.next() != q_itr.next())
 							join = false;
@@ -131,11 +133,11 @@ public class ItemsetGenerator {
 					
 					if (join) {
 						//do the join by creating a new Itemset and adding strings to it
-						
 						Itemset is = new Itemset();
 						
 						p_itr = p_set.iterator();
 						q_itr = q_set.iterator();
+						//the first k-2 elements are the same is both p_set and q_set
 						for (int i = 0; i < k-2; ++i) {
 							is.addElement(p_itr.next());
 							q_itr.next();
@@ -187,6 +189,7 @@ public class ItemsetGenerator {
 			}
 			
 		} catch (Exception e) {
+			System.out.println("Input file not found");
 			System.exit(1);
 		}
 	}
