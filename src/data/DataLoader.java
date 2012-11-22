@@ -1,40 +1,58 @@
 package data;
 
-import java.io.IOException;
+import java.io.FileNotFoundException;
+
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.*;
 
 import data.parser.CSVRecordReader;
 import data.parser.RecordReader;
-import data.tranformer.FieldMapper;
-import data.tranformer.FieldTransformer;
 
 public class DataLoader {
+	
+	static Logger logger = Logger.getLogger(DataLoader.class);
+	
 	protected String dataFileName;
-	protected String configFileName;
+	protected String schemaFileName;
 	
 	public DataLoader(String datafile, String configfile) {
 		dataFileName = datafile;
-		configFileName = configfile;
+		schemaFileName = configfile;
 	}
 
-	public Database load() throws IOException {
-		Schema schema = Schema.readSchema(configFileName);
+	public Database load() {
+		Schema schema = Schema.readSchema(schemaFileName);
 		Database db = new Database(schema);
 		
-		// PASS 1: Read in strings
-		RecordReader rr = new CSVRecordReader(schema, dataFileName);
-		
+		RecordReader rr = null;
+		try {
+			rr = new CSVRecordReader(schema, dataFileName);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}				
 		Record record;
 		while ((record = rr.readNext()) != null) {
 			db.insert(record);
 		}
-		// PASS 2: Transform values
+		rr.close();
+		
+		// PASS 2: Do range partition
 		for (FieldInfo fieldInfo : schema.getFieldInfos()) {
-			FieldMapper mapper = FieldMapper.createMapper(fieldInfo);
-			mapper.genMap(db.getFieldIterator(fieldInfo));
-			FieldTransformer transformer = new FieldTransformer(mapper);
-			db.transform(fieldInfo, transformer);
+			if (fieldInfo.getPartitions() != 0) {
+				db.partition(fieldInfo, fieldInfo.getPartitions());
+			}
 		}
 		
+		db.appendPrefix();
+		
 		return db;
+	}
+	
+	public static void main(String[] args) {
+		BasicConfigurator.configure();
+		logger.setLevel(Level.INFO);
+		
+		Database db = new DataLoader("boiler-noheader.csv", "schema.txt").load();
+		db.export("output-full.txt");
 	}
 }

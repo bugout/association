@@ -125,8 +125,19 @@ public class ItemsetGenerator {
 					Set<String> p_set = p.getItems();
 					Set<String> q_set = q.getItems();
 					
-					Iterator<String> p_itr = p_set.iterator();
-					Iterator<String> q_itr = q_set.iterator();
+					// iterate over sets does not guarantee order
+					// so can not compare equality in this way					
+					// for example, iterator over the same set {1,2,3},
+					// one is in order 2,1,3, the other in 3,2,1
+					// then no element is equal here! 					
+					ArrayList<String> pset = new ArrayList<String>(p_set);
+					ArrayList<String> qset = new ArrayList<String>(q_set);
+					Collections.sort(pset);
+					Collections.sort(qset);
+
+					Iterator<String> p_itr = pset.iterator();
+					Iterator<String> q_itr = qset.iterator();					
+					
 					
 					//compare sets from 0 to k-2 elements while join is true
 					//each itemset in seed should contain k-1 items

@@ -1,24 +1,18 @@
 package data;
 
 public class Field {
-	protected int value;
-	protected final String raw;
+	protected String raw;
 	
-	public Field(String raw, int value) {
+	public Field(String raw) {
 		this.raw = raw;
-		this.value = value;
-	}
-	
-	public int getValue() {
-		return value;
-	}
-	
-	public void setValue(int value) {
-		this.value = value;
-	}
+	}	
 	
 	public String getRaw() {
 		return raw;
+	}
+	
+	public void setRaw(String value) {
+		raw = value;
 	}
 	
 	public boolean isNull() {
