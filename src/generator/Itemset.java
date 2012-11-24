@@ -5,6 +5,7 @@ public class Itemset {
 	
 	public Itemset() {
 		itemSet = new TreeSet<String>();
+		support = 0.0;
 	}
 	
 	public void addElement(String element) {
@@ -24,5 +25,14 @@ public class Itemset {
 		
 	}
 	
-	private Set<String> itemSet; 
+	public void setSupport(double support) {
+		this.support = support;
+	}
+	
+	public double getSupport() {
+		return support;
+	}
+	
+	private Set<String> itemSet;
+	private double support;
 }
