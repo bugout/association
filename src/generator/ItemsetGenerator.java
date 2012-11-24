@@ -10,17 +10,17 @@ public class ItemsetGenerator {
 	private List<Itemset> transactions;
 	
 	//contains all large itemsets
-	private List<Itemset> largeItemSets;
+	private Set<Itemset> largeItemSets;
 	
 	//seed for kth iteration
 	private List<Itemset> seed;
 	
-	private List<Rule> rules;
+	private Set<Rule> rules;
 	
 	public ItemsetGenerator() {
 		transactions = new ArrayList<Itemset>();
-		largeItemSets = new ArrayList<Itemset>();
-		rules = new ArrayList<Rule>();
+		largeItemSets = new TreeSet<Itemset>();
+		rules = new TreeSet<Rule>();
 	}
 	
 	public void generateAssociations(String fileName, double min_support, double min_conf) {
@@ -132,24 +132,13 @@ public class ItemsetGenerator {
 				{
 					boolean join = true;
 					
-					//get p and q sets and iterators
+					//get p and q sets and iterators, p and q are treesets, thus they are already ordered
 					Set<String> p_set = p.getItems();
 					Set<String> q_set = q.getItems();
 					
-					// iterate over sets does not guarantee order
-					// so can not compare equality in this way					
-					// for example, iterator over the same set {1,2,3},
-					// one is in order 2,1,3, the other in 3,2,1
-					// then no element is equal here! 					
-					ArrayList<String> pset = new ArrayList<String>(p_set);
-					ArrayList<String> qset = new ArrayList<String>(q_set);
-					Collections.sort(pset);
-					Collections.sort(qset);
-
-					Iterator<String> p_itr = pset.iterator();
-					Iterator<String> q_itr = qset.iterator();					
-					
-					
+					Iterator<String> p_itr = p_set.iterator();
+					Iterator<String> q_itr = q_set.iterator();					
+	
 					//compare sets from 0 to k-2 elements while join is true
 					//each itemset in seed should contain k-1 items
 					for (int i = 0; i < k - 2 && join; ++i) {
@@ -158,8 +147,7 @@ public class ItemsetGenerator {
 					}
 			
 					//compare k-1th element of p, is less than k-1th element of q
-					if (join) {
-						
+					if (join) {		
 						if ((p_itr.next()).compareTo((q_itr.next())) >= 0)
 							join = false;
 					}
@@ -174,9 +162,8 @@ public class ItemsetGenerator {
 						for (int i = 0; i < k-2; ++i) {
 							is.addElement(p_itr.next());
 							q_itr.next();
-						}
-						is.addElement(p_itr.next());
-						
+						}				
+						is.addElement(p_itr.next());						
 						is.addElement(q_itr.next());
 						
 						retlist.add(is);
