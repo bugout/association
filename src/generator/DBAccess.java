@@ -21,33 +21,26 @@ public class DBAccess {
 			
 			Class.forName("org.sqlite.JDBC");
 			
-			
 			connection = DriverManager.getConnection("jdbc:sqlite:temp.db");	
 			statement = connection.createStatement();
 			
 			try {
-				System.out.println("Dropping Table");
 				statement.execute("Drop table LargeItemSet");
 			}
 			catch (Exception e) {
-				System.out.println(e.getMessage());
+				System.err.println("Error dropping table, check database files or set useSql to false to work without sql");
 			}
 			
 			sql = generateCreateQuery(k);
-			System.out.println("Creating Table");
-			System.out.println(sql);
 			statement.execute(sql);
 
 			for (Itemset is : seed) 
 			{
-				System.out.println("inserting data for query: ");
 				sql = generateInsertStatement(is);
-				System.out.println(sql);
 				statement.execute(sql);
 			}
 			
 			sql = generateSelectQuery(k);
-			System.out.println(sql);
 			rs = statement.executeQuery(sql);
 			ResultSetMetaData theMetaData = rs.getMetaData();
 			
@@ -69,13 +62,9 @@ public class DBAccess {
 			statement.close();
 			connection.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println("Error during execute sql query, check database files or set useSql to false to work without sql");
 		}
 		
-		//values being returned
-		for (Itemset is : retList) {
-			System.out.println(is.toString());
-		}
 		return retList;
 				
 	}
@@ -147,33 +136,5 @@ public class DBAccess {
 		
 		return sb.toString();
 	}
-
-	
-	public static void main(String[] args) {
-		DBAccess dba = new DBAccess();
-		
-		List<Itemset> seed = new ArrayList<Itemset>();
-		
-		Itemset is1 = new Itemset();
-		is1.addElement("pen");
-		is1.addElement("ink");
-		
-		seed.add(is1);
-
-		Itemset is2 = new Itemset();
-		is2.addElement("ink");
-		is2.addElement("dairy");
-		
-		seed.add(is2);
-		
-		Itemset is3 = new Itemset();
-		is3.addElement("dairy");
-		is3.addElement("pen");
-
-		seed.add(is3);
-		
-		dba.populateLargeItemSet(seed, 3);
-	}
-	
 
 }
