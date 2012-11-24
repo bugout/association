@@ -1,7 +1,7 @@
 package generator;
 import java.util.*;
 
-public class Itemset {
+public class Itemset implements Comparable<Itemset> {
 	
 	public Itemset() {
 		itemSet = new TreeSet<String>();
@@ -31,6 +31,19 @@ public class Itemset {
 	
 	public double getSupport() {
 		return support;
+	}
+	
+	@Override
+	public int compareTo(Itemset is) {
+		
+		int retval = 0;
+		
+		if (support > is.support)
+			retval =  -1;
+		else if (support < is.support)
+			retval = 1;
+		
+		return retval;
 	}
 	
 	private Set<String> itemSet;
