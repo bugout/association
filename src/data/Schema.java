@@ -32,7 +32,7 @@ public class Schema {
 			reader = new BufferedReader(new FileReader(configfile));
 			String line;
 			while ((line = reader.readLine()) != null && line.trim() != "") {
-				String[] fields = line.split("\t");
+				String[] fields = line.split(",");
 				
 				FieldInfo info = new FieldInfo();
 				int k = 0;
