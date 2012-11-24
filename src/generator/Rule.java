@@ -1,6 +1,6 @@
 package generator;
 
-public class Rule {
+public class Rule implements Comparable<Rule> {
 	
 	private Itemset lhs;
 	private Itemset rhs;
@@ -54,5 +54,17 @@ public class Rule {
 		sb.append(rhs.toString());
 		
 		return sb.toString();
+	}
+
+	@Override
+	public int compareTo(Rule rule) {
+		int retval = 0;
+		
+		if (confidence > rule.confidence)
+			retval =  -1;
+		else if (confidence < rule.confidence)
+			retval = 1;
+		
+		return retval;
 	}
 }
