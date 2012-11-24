@@ -1,7 +1,6 @@
 package generator;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
 import java.util.*;
 
 public class ItemsetGenerator {
@@ -10,17 +9,20 @@ public class ItemsetGenerator {
 	private List<Itemset> transactions;
 	
 	//contains all large itemsets
-	private Set<Itemset> largeItemSets;
+	private List<Itemset> largeItemSets;
 	
 	//seed for kth iteration
 	private List<Itemset> seed;
 	
-	private Set<Rule> rules;
+	private List<Rule> rules;
 	
-	public ItemsetGenerator() {
+	FileWriter writer;
+	
+	public ItemsetGenerator() throws IOException {
 		transactions = new ArrayList<Itemset>();
-		largeItemSets = new TreeSet<Itemset>();
-		rules = new TreeSet<Rule>();
+		largeItemSets = new ArrayList<Itemset>();
+		rules = new ArrayList<Rule>();
+		writer = new FileWriter(new File("Example-run.txt"));
 	}
 	
 	public void generateAssociations(String fileName, double min_support, double min_conf) {
@@ -29,9 +31,8 @@ public class ItemsetGenerator {
 		readInputFile(fileName);
 		
 		//return all items that meet required min_support.  
-		//We don't have to add this list to largeItemSets as we are interested 
-		//in sets that are more than 1 element, but we add it because we need to 
-		//print it as required by the project.
+		//We don't need this list to generated association rules as it only contains one element 
+		//but we add it because we need to print it as required by the project.
 		List<Itemset> initialList = initilizeLargeItemSet(min_support);	
 		largeItemSets.addAll(initialList);
 		seed = initialList;
@@ -57,18 +58,10 @@ public class ItemsetGenerator {
 			//set the seed to the candidateList for the next iteration
 			seed = candidateList;
 			
-			//add all the cadidates to the largeItemSets since they 
-			//meeting the minimum support
+			//add all the cadidates to the largeItemSets since they meeting the minimum support
 			largeItemSets.addAll(candidateList);
 			
 			k++;
-		}
-		
-		//largeItemSets contain all the required itemsets
-		System.out.println("All Large Itemsets:");
-		//output all large itemsets
-		for (Itemset is : largeItemSets) {
-			System.out.println(is.toString() + " Support: " + is.getSupport());
 		}
 		
 		//evaluate all the association rules
@@ -77,11 +70,20 @@ public class ItemsetGenerator {
 				generateRules(is, min_conf);
 		}
 		
+		Collections.sort(largeItemSets);
+		Collections.sort(rules);
+		
+		System.out.println("All Large Itemsets:");
+		for (Itemset is : largeItemSets) 
+			System.out.println(is.toString() + " Support: " + is.getSupport());
+		
 		System.out.println("All Association Rules:");
 		for (Rule rule : rules) {
 			System.out.println(rule.toString() + " (Support: " + rule.getSupport() + 
 					" , Confidence: " + rule.getConfidence() + ")");
 		}
+		
+		generateOutput();
 	}
 		
 	private List<Itemset> aprioriGen(List<Itemset> seed, int k) {
@@ -95,27 +97,38 @@ public class ItemsetGenerator {
 			candidateList = db.populateLargeItemSet(seed, k);
 		}
 		else {
-			// do the join in the memory 
+			// do the join in the memory, it returns a new candidate list 
 			candidateList = populateLargeItemSet(seed, k);
 		}
 		
-		/* Optimize by evaluating subsets of each candidateList of size k-1 and deleting the ones 
-		 * that don't exist in the seed 
+		/* 
+		 * Optimize by evaluating subsets of each candidate of size k-1. If any candidate's subsets 
+		 * are not contained in the seed, delete that candidate
 		 */
-		/*
 		List<Itemset> removeList = new ArrayList<Itemset>();
 		for (Itemset is : candidateList)
 		{
+			boolean remove = false;
 			List<Itemset> subsets = populateSubsets(is, k);
-			if (!seed.containsAll(subsets))
+			
+			for (Itemset subsetIs : subsets) {
+				boolean isFound = false;
+				for (Itemset seedIs : seed) {
+					if (seedIs.containsSameItems(subsetIs)) {
+						isFound = true;
+						break;
+					}		
+				}
+				if (!isFound) {
+					remove = true;
+					break;
+				}
+			}
+			
+			if (remove)
 				removeList.add(is);
 		}
-		
 		candidateList.removeAll(removeList);
-		
-		for (Itemset is : candidateList) 
-			System.out.println(is.toString());
-		*/
 		
 		return candidateList;
 	}
@@ -299,7 +312,33 @@ public class ItemsetGenerator {
 		return confidence;
 	}
 	
-	public static void main(String[] args) {
+	private void generateOutput() {
+		
+		try {
+			writer.write("All Large Itemsets:\n");
+			for (Itemset is : largeItemSets) 
+				writer.write(is.toString() + ", Support: " + is.getSupport() + "\n");
+			
+			writer.write("All Association Rules:\n");
+			for (Rule rule : rules) {
+				writer.write(rule.toString() + " (,Support: " + rule.getSupport() + 
+						" , Confidence: " + rule.getConfidence() + ")\n");
+			}
+			
+			//print the term meaning
+			
+			writer.flush();
+			writer.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
+	
+	public static void main(String[] args) throws IOException {
 		ItemsetGenerator generator = new ItemsetGenerator();
 		generator.generateAssociations("output-full.txt", 0.1, 0.5);
 	}
