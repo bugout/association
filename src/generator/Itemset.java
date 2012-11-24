@@ -33,6 +33,28 @@ public class Itemset implements Comparable<Itemset> {
 		return support;
 	}
 	
+	public boolean containsSameItems(Itemset is) {
+		
+		boolean retval = true;
+		
+		if (itemSet.size() != is.getItems().size())
+			return false;
+		
+		Iterator<String> set1itr = itemSet.iterator();
+		Iterator<String> set2itr = is.getItems().iterator();
+		
+		for (int i = 0; i < itemSet.size() && retval; ++i)
+		{
+			String item1 = set1itr.next();
+			String item2 = set2itr.next();
+			
+			if (item1 != item2)
+				retval = false;
+		}
+			
+		return retval;
+	}
+	
 	@Override
 	public int compareTo(Itemset is) {
 		
