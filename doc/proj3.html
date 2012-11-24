@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html><head>
+<title>Extract Association Rules </title>
+<meta http-equiv="Content-type" content="text/html; charset=iso-8859-1">
+</head>
+<body bgcolor="#FFFFFF">
+
+
+<p>
+------------------------------------------<br>
+Readme files for CS6111 Project 3<br>
+Group members:<br>
+Anuj Arora (aa2583)<br>
+Jiacheng Yang (jy2522)<br>
+------------------------------------------<br>
+<br>
+</p>
+
+<b>Dataset</b>
+
+
+<ol>
+<li>About the dataset</li>
+We choose a dataset about the oil boilers in New York. This dataset has a wide range of detailed data about each boiler and the building it locates in, for example its location, model, capacity, consumption and so on. The original dataset has 8048 non-null rows and 33 columns in total. You can view our chosen dataset here: <a href=https://data.cityofnewyork.us/Facilities-and-Structures/Oil-Boilers-Detailed-Fuel-Consumption-and-Building/jfzu-yy6n>https://data.cityofnewyork.us/Facilities-and-Structures/Oil-Boilers-Detailed-Fuel-Consumption-and-Building/jfzu-yy6n</a> <br>
+
+
+<li>Pre-process the dataset</li>
+The quality of data is critical for the outcome of our data mining algorithm. We pre-process the data to generate the integrated dataset file. Important operations in this step include removing unnecessary columns, range partitioning numerical values and more. One interesting feature of our pre-processing is that it is based on a user-defined schema similar to the 'CREATE TABLE' clause in SQL. The user defines how to process each column in a simple way, and our pre-processing program will generate the integrated dataset as user wants automatically. <br><br>
+
+<ul>
+  <li>Removing uninformative columns</li>
+  Firstly, we remove some uninformative and duplicate columns in the dataset. For example, the block id is removed because it doesn't tell us too much about the data. Column 'Natural Gas Utility' is also removed, because every value in the column is of the same value. We remove 17/33 trivial columns that obviously does not help with the association rule discovery from the datasets.<br><br>
+
+  <li>Removing erroneous data</li>
+  We also removes erroneous data from the datasets. For example, some boilers have capacities larger than more than 2-3 magnitudes than other boilers. And some rows have almost every informative columns as NULL. But we guarantee that the rows we remove are only of a small proportion of the data (less than 1%). At the end, we keep 7074/8048 rows. <br><br>
+  
+  <li>Replacing NULL values</li>
+  The last thing we do in this step is to padding the NULL value in a column with . In the 'is boiler dual fuel capable' column, only 'DUAL FUEL' is filled in here, while other lines are left blank. We fill in 'Non-dual fuel' for every blank line. Elimination of NULL value simplifies our further processing<br><br>
+
+  <li><b>Schema-driven data cleaning</b></li>
+  The highlight of our data pre-processing is a schema-driven data cleaning. In this step, the user provides a schema for the dataset, specifying the format of each column. The schema works like the 'CREATE SQL' clause in database. Our program will generate an integrated dataset according to the schema.<br><br>
+
+  Here is the format for the schema definition: each line in the schema file corresponds to a column in the dataset. For each column, we define the column name(column-name), whether we want to skip that column(skip), what is the type of the column(type), e.g. int, double, string, if we want to range partition the values. <br><br>
+  
+  |column-name|skip|type|#partitions| <br><br>
+
+  Let's explain what does each column mean. Column name is used to identify a column and it is used to padding the value of a column(will explain later). We can also skip certain columns if they don't help us finding meaningful rules. This is like a feature-selection in machine learning. We also indicates the parser how to interpret the column. Some column may have multiple ways to interpret, for example, a year '1999' can either be read as int or as a string.<br><br>
+
+The last field '#partitions' is especially useful to process numerical values. Numerical values, usually integers and double, come from a continuous domain. We have to put them into appropriate ranges to discover rules. We do not manually set the boundaries of a range. Instead, we use range partitions to pick the range boundaries. For example, if we set the number of partitions to two. Our program will find the median of the column; all values smaller than the median falls into the first partition while all values come after the median go to the second.<br><br>
+
+  <li>How it works</li>
+  The <i>DataLoader</i> first reads in the schema file and data file, then it uses a <i>CSVRecordReader</i> to parse each line in the data file. After that, some transformation is performed on the data, e.g. range partitioning. Finally, the <i>Database</i>, which contain a list of transformed <i>Record</i> is exported to 'integrated-dataset.csv'.
+
+</ul>
+  
+
+</ol>
+
+
+</ol>
+
+
+<b>Internal Design</b> <br>
+TODO.
+
+
+<br><br>
+
+<b>Result Analysis</b> <br>
+In this part, we to show some interesting rules we've found by our program.
+
+<ul>
+
+Obvious rules:
+<li>Large capacity leads to high consumption</li>
+Example rules:
+
+
+<li>Large building uses large boilers and they consume more energy</li>
+Example rules:
+[AREA-0] => [CAPACITY-0]
+
+<br><br><br>
+
+Less obvious rules:
+<li>#6 fuel is less energy efficiently as #4 fuel</li>
+Example rules:
+[CAPACITY-4, PRIMARY-#6] => [COSUMPTION-4]
+
+<li>Old boilers usually use #6 fuel</li>
+Example rules
+
+<li>
+
+
+
+</ul>
+
+
+
+</body>
+</html>
