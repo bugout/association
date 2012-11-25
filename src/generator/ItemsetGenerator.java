@@ -319,13 +319,83 @@ public class ItemsetGenerator {
 			for (Itemset is : largeItemSets) 
 				writer.write(is.toString() + ", Support: " + is.getSupport() + "\n");
 			
-			writer.write("All Association Rules:\n");
+			writer.write("\nAll Association Rules:\n");
 			for (Rule rule : rules) {
-				writer.write(rule.toString() + " (,Support: " + rule.getSupport() + 
+				writer.write(rule.toString() + " (Support: " + rule.getSupport() + 
 						" , Confidence: " + rule.getConfidence() + ")\n");
 			}
 			
-			//print the term meaning
+			
+			//print the term range
+			
+			//create a set of all the terms in the rules
+			Set<String> items = new TreeSet<String>();
+			
+			for (Rule rule : rules) 
+			{
+				items.addAll(rule.getLhs().getItems());
+				items.addAll(rule.getRhs().getItems());
+			}
+			
+			//read the schema file
+			
+			BufferedReader br = new BufferedReader(new FileReader("schema.txt"));
+			
+			//hard-coding the value here, it can be read from schema-format.txt to make it generic
+			
+			Map<String, String[]> rangeMap = new HashMap<String, String[]>();
+			
+			String line;
+			while ( (line = br.readLine()) != null ) {
+				String schemaEntry[] = line.split(",");
+				String columnName = schemaEntry[0];
+				
+				int partitionNumber = 0;
+				
+				try {
+					partitionNumber = Integer.parseInt(schemaEntry[3]);
+				} catch (NumberFormatException e) {
+					System.err.println("Error in schema file, one or more range info in Example-run.txt file might be missing");
+				}
+				
+				if (0 < partitionNumber) {
+					String partitions[] = new String[partitionNumber+1];
+					
+					int k = 0;
+					
+					BufferedReader reader = new BufferedReader(new FileReader(columnName + ".range"));
+					String value;
+					while (k <= partitionNumber && (value = reader.readLine()) != null ) {
+						partitions[k] = value;
+						++k;
+					}
+					rangeMap.put(columnName, partitions);
+				}
+			}
+			
+			writer.write("\nFollowing are the range values for items listed above, where applies: \n");
+			
+			for (String s : items) {
+				String key = s.substring(0, s.indexOf("-"));
+				if (rangeMap.containsKey(key)) {
+					try {
+						int partitionNumber = Integer.parseInt(s.substring(s.indexOf("-")+1));
+						String myPartitions[] = rangeMap.get(key);
+						StringBuffer sb = new StringBuffer("");
+						sb.append(s);
+						sb.append(": (");
+						sb.append(myPartitions[partitionNumber]);
+						sb.append(",");
+						sb.append(myPartitions[partitionNumber+1]);
+						sb.append(")");
+						writer.write(sb.toString() + "\n");
+					}
+					catch (NumberFormatException e) {
+						System.err.println("Error in schema file, one or more range info in Example-run.txt file might be missing");
+					}
+				}
+			}
+			
 			
 			writer.flush();
 			writer.close();
@@ -340,6 +410,6 @@ public class ItemsetGenerator {
 	
 	public static void main(String[] args) throws IOException {
 		ItemsetGenerator generator = new ItemsetGenerator();
-		generator.generateAssociations("output-full.txt", 0.1, 0.5);
+		generator.generateAssociations("output-full.txt", 0.1, 0.1);
 	}
 }
