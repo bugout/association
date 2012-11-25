@@ -2,15 +2,7 @@ package data;
 
 import java.io.FileNotFoundException;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.*;
-
-import data.parser.CSVRecordReader;
-import data.parser.RecordReader;
-
 public class DataLoader {
-	
-	static Logger logger = Logger.getLogger(DataLoader.class);
 	
 	protected String dataFileName;
 	protected String schemaFileName;
@@ -49,9 +41,6 @@ public class DataLoader {
 	}
 	
 	public static void main(String[] args) {
-		BasicConfigurator.configure();
-		logger.setLevel(Level.INFO);
-		
 		Database db = new DataLoader("boiler-noheader.csv", "schema.txt").load();
 		db.export("output-full.txt");
 	}

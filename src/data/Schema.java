@@ -6,12 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-import org.apache.log4j.*;
-
-
 public class Schema {
-	
-	static Logger logger = Logger.getLogger(Schema.class);
 	
 	private ArrayList<FieldInfo> fieldInfos;
 	private ArrayList<FieldInfo> activeFields = new ArrayList<FieldInfo>();
@@ -46,7 +41,7 @@ public class Schema {
 			reader.close();
 		}
 		catch (IOException e) {
-			logger.error("Reading config file error");
+			e.printStackTrace();
 		}
 		return schema;
 	}

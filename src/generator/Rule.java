@@ -35,7 +35,7 @@ public class Rule implements Comparable<Rule> {
 		this.support = support;
 	}
 	
-	public void setConfidecne(double confidence) {
+	public void setConfidence(double confidence) {
 		this.confidence = confidence;
 	}
 

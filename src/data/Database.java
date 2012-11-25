@@ -9,11 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import org.apache.log4j.*;
-
 public class Database {
-	
-	static Logger logger = Logger.getLogger(Database.class);
 	
 	protected Schema schema;
 	protected List<Record> records = new ArrayList<Record>();
@@ -33,7 +29,7 @@ public class Database {
 			}
 			writer.close();
 		} catch (Exception e) {
-			logger.error("Error exportint to file");
+			e.printStackTrace();
 		}
 	}
 	

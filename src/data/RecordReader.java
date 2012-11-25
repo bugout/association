@@ -1,4 +1,4 @@
-package data.parser;
+package data;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
@@ -6,8 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import data.Record;
-import data.Schema;
 
 public abstract class RecordReader implements Closeable {
 	protected Schema schema;

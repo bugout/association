@@ -1,5 +1,6 @@
 *.class
 *.range
+output*
 bin/
 
 # Package Files #

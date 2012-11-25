@@ -4,6 +4,8 @@ import java.io.*;
 import java.util.*;
 
 public class ItemsetGenerator {
+	// use sql or not to generate large itemsets
+	private final static boolean usesql = false;
 	
 	//contains all the transactions
 	private List<Itemset> transactions;
@@ -88,7 +90,6 @@ public class ItemsetGenerator {
 		
 	private List<Itemset> aprioriGen(List<Itemset> seed, int k) {
 		
-		boolean usesql = false;
 		List<Itemset> candidateList;
 		
 		if (usesql) {
@@ -288,7 +289,7 @@ public class ItemsetGenerator {
 			double confidence = calculateConfidence(lhs, rhs);
 			if (confidence >= min_conf) {
 				Rule rule = new Rule(lhs, rhs);
-				rule.setConfidecne(confidence);
+				rule.setConfidence(confidence);
 				rule.setSupport(is.getSupport());
 				rules.add(rule);
 			}
@@ -307,7 +308,7 @@ public class ItemsetGenerator {
 		for (String s : rhs.getItems())
 			union.addElement(s);
 		
-		confidence = (calculateSupport(union))/(calculateSupport(rhs));
+		confidence = (calculateSupport(union))/(calculateSupport(lhs));
 		
 		return confidence;
 	}
@@ -410,6 +411,6 @@ public class ItemsetGenerator {
 	
 	public static void main(String[] args) throws IOException {
 		ItemsetGenerator generator = new ItemsetGenerator();
-		generator.generateAssociations("output-full.txt", 0.1, 0.1);
+		generator.generateAssociations("output-full.txt", 0.1, 0.5);
 	}
 }

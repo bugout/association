@@ -1,10 +1,6 @@
 package data;
 
-import org.apache.log4j.*;
-
 public class FieldInfo {
-	static Logger logger = Logger.getLogger(FieldInfo.class);
-	
 	private String name = "";
 	private boolean skip = true;
 	private String type = null;
@@ -40,7 +36,7 @@ public class FieldInfo {
 			partitions = Integer.parseInt(value);
 			break;
 		default:
-			logger.error("Unexpected shema type");
+			System.err.println("Unexpected field");
 			break;
 		}
 	}

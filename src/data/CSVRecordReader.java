@@ -1,13 +1,9 @@
-package data.parser;
+package data;
 
 import java.io.FileNotFoundException;import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
 
-import data.Field;
-import data.FieldInfo;
-import data.Record;
-import data.Schema;
 
 public class CSVRecordReader extends RecordReader {
 	private static final String splitter = ",";
