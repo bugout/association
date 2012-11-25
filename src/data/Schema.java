@@ -6,9 +6,15 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+/*
+ * The data schema
+ * Specify how to pre-process each column in the original data file
+ * Can skip a column, or range partition columns of numerical value
+ */
 public class Schema {
-	
+	// all columns
 	private ArrayList<FieldInfo> fieldInfos;
+	// columns that are not skipped
 	private ArrayList<FieldInfo> activeFields = new ArrayList<FieldInfo>();
 	
 	public Schema() {
@@ -19,6 +25,7 @@ public class Schema {
 		this.fieldInfos = fieldInfos;
 	}	
 	
+	// Read a schema from the schema configuration file
 	public static Schema readSchema(String configfile) {
 		Schema schema = new Schema();
 		

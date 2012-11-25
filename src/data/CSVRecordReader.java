@@ -4,7 +4,9 @@ import java.io.FileNotFoundException;import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
 
-
+/*
+ * A record reader to read CSV format dataset
+ */
 public class CSVRecordReader extends RecordReader {
 	private static final String splitter = ",";
 	

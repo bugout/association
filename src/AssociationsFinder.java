@@ -36,9 +36,9 @@ public class AssociationsFinder {
 			
 		ItemsetGenerator generator;
 		try {
-			generator = new ItemsetGenerator();
-			generator.generateAssociations(fileName, min_support, min_confidence);
-			System.out.println("Example-run.txt contains detailed results");
+			generator = new ItemsetGenerator(fileName, min_support, min_confidence);
+			generator.generateAssociations();
+			System.out.println("output.txt contains detailed results");
 		} catch (IOException e) {
 			System.err.println("Can't create output file. Error Message: " + e.getMessage());
 			System.exit(1);

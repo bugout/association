@@ -17,6 +17,82 @@ Jiacheng Yang (jy2522)<br>
 <br>
 </p>
 
+<b>List of files</b><br>
+* source code<br>
+
+<p>
+
+- src/AssociationsFinder.java: Startup and UI module<br>
+
+<p>
+
+- src/data/*: Implementation of schema-driven data pre-processing<br>
+- src/data/Schema.java: Represent a database schema <br>
+- src/data/FieldInfo.java: Each field/column in the schema <br>
+- src/data/SchemaField.java: Enumeration of what fields are included in the schema <br>
+- src/data/Database.java: A representation for the entire dataset <br>
+- src/data/Record.java: Represent a record in the database <br>
+- src/data/Field.java: Represent each field in a record in the database <br>
+- src/data/RecordReader.java: An abstract class to read a record from dataset <br>
+- src/data/CSVRecordReader.java: Read record from CSV format dataset <br>
+
+<p>
+
+- src/generator/*: Implementation of association rule mining algorithm<br>
+- src/generator/DBAccess.java: Wrap the access to database <br>
+- src/generator/Itemset.java: Representation of a large itemset <br>
+- src/generator/Rule.java: Representation of a rule <br>
+- src/generator/ItemsetGenerator.java: implement the Apriori algorithm <br>
+ 
+
+<br>
+
+* documents<br>
+- docs/proj3.html: the readme file to describe our methods<br>
+- Makefile: the makefile file<br>
+- run.sh: run file<br>
+- docs/example-run.txt: An output of our example run<br>
+
+<br>
+
+* data file <br>
+- data/boiler.csv: The original dataset, but with several useless columns and erroneous lines removed. <br>
+- data/schema.txt: A schema used to parse and pre-process boiler.csv <br>
+- data/integrated-dataset.csv: the integrated data file, generated from the above schema on boiler.csv. <br>
+- data/*.range: the range boundaries of range-partitioned columns (for internal use) <br>
+
+<br>
+
+<b>How to run our program?</b>
+
+<p>
+
+   * Compile on clic machines <br>
+     1) Go into directory association <br>
+     2) option1: 'make' <br>
+     3) option2: manually compile: <br>
+     	javac -cp "src" src/AssociationsFinder.java <br>
+
+</p>
+
+<p>
+
+   * Run tests <br>
+     1) Go into directory association <br>
+     2) option 1: run script ./run.sh datafile min_supp min_conf<br>
+     3) option 2: manually run java <br>
+     	java -cp "src" AssociationsFinder datafile min_supp min_conf <br><br>
+        
+	Example: ./run.sh data/integrated-dataset.csv 0.1 0.7 <br><br>
+
+     4) Output of large itemsets and rules are printed on screen <br>
+     5) Output is written to "output.txt" in which also include the range of range-partitioned columns<br>
+<br>
+</p>
+<p>
+
+
+
 <b>Dataset</b>
 
 
@@ -41,16 +117,18 @@ The quality of data is critical for the outcome of our data mining algorithm. We
   <li><b>Schema-driven data cleaning</b></li>
   The highlight of our data pre-processing is a schema-driven data cleaning. In this step, the user provides a schema for the dataset, specifying the format of each column. The schema works like the 'CREATE SQL' clause in database. Our program will generate an integrated dataset according to the schema.<br><br>
 
-  Here is the format for the schema definition: each line in the schema file corresponds to a column in the dataset. For each column, we define the column name(column-name), whether we want to skip that column(skip), what is the type of the column(type), e.g. int, double, string, if we want to range partition the values. <br><br>
+  Here is the format for the schema definition: each line in the schema file corresponds to a column in the dataset. For each column, we define the column name(column-name), whether we want to skip that column(skip), what is the type of the column(type), e.g. int, double, string and whether we want to range partition the values. <br><br>
   
   |column-name|skip|type|#partitions| <br><br>
 
-  Let's explain what does each column mean. Column name is used to identify a column and it is used to padding the value of a column(will explain later). We can also skip certain columns if they don't help us finding meaningful rules. This is like a feature-selection in machine learning. We also indicates the parser how to interpret the column. Some column may have multiple ways to interpret, for example, a year '1999' can either be read as int or as a string.<br><br>
+Column name is used to identify a column and it is used to padding the value of a column(will explain later). We can also skip certain columns if they don't help us finding meaningful rules. This is like a feature-selection in machine learning. We also indicates the parser how to interpret the column. Some column may have multiple ways to interpret, for example, year '1999' can either be read as int or as a string.<br><br>
 
-The last field '#partitions' is especially useful to process numerical values. Numerical values, usually integers and double, come from a continuous domain. We have to put them into appropriate ranges to discover rules. We do not manually set the boundaries of a range. Instead, we use range partitions to pick the range boundaries. For example, if we set the number of partitions to two. Our program will find the median of the column; all values smaller than the median falls into the first partition while all values come after the median go to the second.<br><br>
+<li><b>Range partition numerical values</b></li>
 
-  <li>How it works</li>
-  The <i>DataLoader</i> first reads in the schema file and data file, then it uses a <i>CSVRecordReader</i> to parse each line in the data file. After that, some transformation is performed on the data, e.g. range partitioning. Finally, the <i>Database</i>, which contain a list of transformed <i>Record</i> is exported to 'integrated-dataset.csv'.
+The last field '#partitions' is especially useful to process numerical values. Numerical values, usually integers and double, come from a continuous domain. We map them to appropriate ranges to discover rules. We use range partitions to pick the range boundaries. For example, if we set the number of partitions to two. Our program will find the median of the column; all values smaller than the median falls into the first partition while all values come after the median go to the second.<br><br>
+
+<li><b>How it works</b></li>
+  The <i>DataLoader</i> first reads in the schema file and data file, then it uses <i>CSVRecordReader</i> to parse each line in the data file. After that, some transformation is performed on the data, e.g. range partitioning. Finally, the <i>Database</i>, which contain a list of transformed <i>Record</i> is exported to 'integrated-dataset.csv'.
 
 </ul>
   
@@ -67,32 +145,48 @@ TODO.
 
 <br><br>
 
-<b>Result Analysis</b> <br>
-In this part, we to show some interesting rules we've found by our program.
+<b>Example run</b> <br>
+The command line specification of our example run is: <br><br>
+<i>./run.sh integrated-dataset.csv 0.1 0.7</i> <br><br>
+The result of this run is shown in "example-run.txt" <br><br>
+
+We find the result in the run interesting for the following reasons:
 
 <ul>
-
-Obvious rules:
-<li>Large capacity leads to high consumption</li>
-Example rules:
+<li>The number of large itemsets and rules are of moderate size</li>
+There are 99 large itemsets and 79 rules found in this run. <br><br>
 
 
-<li>Large building uses large boilers and they consume more energy</li>
-Example rules:
-[AREA-0] => [CAPACITY-0]
+<li>We can derive consistent conclusions from the rules</li>
+Note that we want to find interesting rules here, which means the rules are non-trivial. So we have already removed those columns with duplicate information and obvious correlation (e.g. we only keep the age of a boiler and discard its year of installation). So the rules we found here is supposed to be interesting, at least to non-experts in this domain. <br>
 
-<br><br><br>
+(in the following rules, CONSUMPTION, CAPACITY and AREA are range partitioned into 5 parts. 0 is the smallest, 4 is the largest) <br><br>
 
-Less obvious rules:
-<li>#6 fuel is less energy efficiently as #4 fuel</li>
-Example rules:
-[CAPACITY-4, PRIMARY-#6] => [COSUMPTION-4]
+<ul>
+<li>New boilers support dual fuel while old boilers usually do not, and old boilers usually burn #6 fuel</li>
+Example rules: <br>
+[AGE-5-10] => [DUALFUEL-DUAL FUEL] (Support: 0.1151 , Confidence: 1.0000) <br>
+[AGE-26-30] => [DUALFUEL-Not Dual] (Support: 0.1770 , Confidence: 0.8902) <br>
+[AGE-26-30] => [PRIMARY-#6] (Support: 0.1432 , Confidence: 0.7200) <br>
 
-<li>Old boilers usually use #6 fuel</li>
-Example rules
+<br><br>
 
-<li>
+<li>#4 fuel is more energy efficient than #6 fuel</li>
+Example rules: <br>
+[CONSUMPTION-0, DUALFUEL-Not Dual] => [PRIMARY-#4] (Support: 0.1081 , Confidence: 0.8011) <br>
+[AREA-4, CONSUMPTION-4] => [PRIMARY-#6] (Support: 0.1189 , Confidence: 0.8919) <br>
+[CAPACITY-4, CONSUMPTION-4] => [PRIMARY-#6] (Support: 0.1248 , Confidence: 0.8900) <br>
 
+<br><br>
+
+<li>Capacity and the type of fuel are major factors to energy consumption</li>
+Example rules: <br>
+[CAPACITY-0, PRIMARY-#4] => [CONSUMPTION-0] (Support: 0.1264 , Confidence: 0.7564) <br>
+[CAPACITY-4, PRIMARY-#6] => [CONSUMPTION-4] (Support: 0.1248 , Confidence: 0.7271) <br>
+
+<br><br>
+
+</ul>
 
 
 </ul>

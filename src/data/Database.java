@@ -9,6 +9,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+/**
+ * Represent the entire dataset, contains a list of records
+ */
 public class Database {
 	
 	protected Schema schema;
@@ -18,7 +21,7 @@ public class Database {
 		this.schema = schema;		
 	}
 	
-	// output the tranformed database into a file	
+	// output the database into a file	
 	public void export(String outfile) {
 		BufferedWriter writer;
 		try {
@@ -41,15 +44,16 @@ public class Database {
 		return records.get(rid);
 	}
 	
-	
 	public Schema getSchema() {
 		return schema;
 	}
 	
+	// Get an iterator to iterate through each record
 	public RecordIterator getRecordIterator() {
 		return new RecordIterator();
 	}
 	
+	// Get an iterator to iterate through one of the column
 	public FieldIterator getFieldIterator(FieldInfo info) {
 		return new FieldIterator(schema.indexOf(info));
 	}
@@ -67,6 +71,7 @@ public class Database {
 		}
 	}
 	
+	// range partition double values
 	public void partitionDouble(FieldInfo fieldInfo, int partitions) {
 		FieldIterator iter = getFieldIterator(fieldInfo);
 		
@@ -108,7 +113,7 @@ public class Database {
 		}
 		
 		try {
-			BufferedWriter writer = new BufferedWriter(new FileWriter(fieldInfo.getName() + ".range"));
+			BufferedWriter writer = new BufferedWriter(new FileWriter("data/" + fieldInfo.getName() + ".range"));
 			writer.write(values.get(0).toString());
 			writer.newLine();
 			for (Double i : boundaries) {
@@ -123,7 +128,7 @@ public class Database {
 		
 	}
 	
-	// range partition data
+	// range partition integer values
 	public void partition(FieldInfo fieldInfo, int partitions) {
 		if (fieldInfo.getType().equals("DOUBLE")) {
 			partitionDouble(fieldInfo, partitions);
@@ -168,7 +173,7 @@ public class Database {
 		}
 	
 		try {
-			BufferedWriter writer = new BufferedWriter(new FileWriter(fieldInfo.getName() + ".range"));
+			BufferedWriter writer = new BufferedWriter(new FileWriter("data/" +fieldInfo.getName() + ".range"));
 			writer.write(values.get(0).toString());
 			writer.newLine();
 			for (Integer i : boundaries) {

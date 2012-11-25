@@ -5,6 +5,7 @@ import java.util.*;
 
 public class ItemsetGenerator {
 	// use sql or not to generate large itemsets
+	// by default, we use our hand-written join implementation instead of sql
 	private final static boolean usesql = false;
 	
 	//contains all the transactions
@@ -16,21 +17,30 @@ public class ItemsetGenerator {
 	//seed for kth iteration
 	private List<Itemset> seed;
 	
+	// contains all the rules
 	private List<Rule> rules;
 	
 	FileWriter writer;
 	
-	public ItemsetGenerator() throws IOException {
-		transactions = new ArrayList<Itemset>();
+	private String datafile;
+	private double min_support;
+	private double min_conf;
+	
+	public ItemsetGenerator(String fileName, double min_support, double min_conf) throws IOException {
+		this.datafile = fileName;
+		this.min_support = min_support;
+		this.min_conf = min_conf;
+		
+		transactions = new ArrayList<Itemset>();		
 		largeItemSets = new ArrayList<Itemset>();
 		rules = new ArrayList<Rule>();
-		writer = new FileWriter(new File("Example-run.txt"));
+		writer = new FileWriter(new File("output.txt"));
 	}
 	
-	public void generateAssociations(String fileName, double min_support, double min_conf) {
+	public void generateAssociations() {
 		
 		//this populates all the transactions
-		readInputFile(fileName);
+		readInputFile(datafile);
 		
 		//return all items that meet required min_support.  
 		//We don't need this list to generated association rules as it only contains one element 
@@ -75,15 +85,17 @@ public class ItemsetGenerator {
 		Collections.sort(largeItemSets);
 		Collections.sort(rules);
 		
-		System.out.println("All Large Itemsets:");
+		System.out.println("==Large itemsets (min_sup=" + min_support + ")");
 		for (Itemset is : largeItemSets) 
-			System.out.println(is.toString() + " Support: " + is.getSupport());
+			System.out.println(is.toString() + " Support: " + String.format("%.4f", is.getSupport()));
 		
-		System.out.println("All Association Rules:");
+		System.out.println("==High-confidence association rules (min_conf=" + min_conf + ")");
 		for (Rule rule : rules) {
-			System.out.println(rule.toString() + " (Support: " + rule.getSupport() + 
-					" , Confidence: " + rule.getConfidence() + ")");
+			System.out.println(rule.toString() + " (Support: " + String.format("%.4f", rule.getSupport()) + 
+					" , Confidence: " + String.format("%.4f", rule.getConfidence()) + ")");
 		}
+		System.out.println(largeItemSets.size() + " large itemsets found!");
+		System.out.println(rules.size() + " rules found!");
 		
 		generateOutput();
 	}
@@ -92,6 +104,8 @@ public class ItemsetGenerator {
 		
 		List<Itemset> candidateList;
 		
+		// Populate candidate large itemsets by either a sql query
+		// or hand-written main-memory join algorithm
 		if (usesql) {
 			DBAccess db = new DBAccess();
 			//this returns a new candidate list
@@ -129,6 +143,7 @@ public class ItemsetGenerator {
 			if (remove)
 				removeList.add(is);
 		}
+		
 		candidateList.removeAll(removeList);
 		
 		return candidateList;
@@ -190,11 +205,15 @@ public class ItemsetGenerator {
 		return retlist;
 	}
 	
+	// get all the k-1 element subset of the itemset
 	private List<Itemset> populateSubsets(Itemset itemset, int k) {
 		
 		List<Itemset> myList = new ArrayList<Itemset>();
-		//evaluate all k-1 subsets and too the ArrayList
-		
+		for (String item : itemset.getItems()) {
+			TreeSet<String> set = new TreeSet<String>(itemset.getItems());
+			set.remove(item);
+			myList.add(new Itemset(set));
+		}
 		
 		return myList;
 		
@@ -216,12 +235,14 @@ public class ItemsetGenerator {
 	
 				transactions.add(theItemSet);
 			}	
+			br.close();
 		} catch (Exception e) {
 			System.out.println("Input file not found");
 			System.exit(1);
 		}
 	}
 	
+	// generate all 1-item large itemsets as a seed of the algorithm
 	private List<Itemset> initilizeLargeItemSet(double min_support) { 
 		
 		List<Itemset> theSet = new ArrayList<Itemset>();
@@ -257,18 +278,6 @@ public class ItemsetGenerator {
 		return theSet;		
 	}
 	
-	private double calculateSupport(Itemset is) {
-		
-		double support = 0.0;
-		double totalTransactions = transactions.size();
-		
-		for (Itemset transaction : transactions)
-			if (transaction.contains(is))
-				support = support + 1.0;
-		
-		return support/totalTransactions;
-	}
-
 	private void generateRules(Itemset is, double min_conf) {
 		
 		//for each largeItemSet, generate rules
@@ -286,7 +295,14 @@ public class ItemsetGenerator {
 				if (s != str)
 					lhs.addElement(str);	
 	
-			double confidence = calculateConfidence(lhs, rhs);
+			for (Itemset largeset : largeItemSets) {
+				if (largeset.containsSameItems(lhs)) {
+					lhs.setSupport(largeset.getSupport());
+					break;
+				}
+			}
+			
+			double confidence = calculateConfidence(is, lhs, rhs);
 			if (confidence >= min_conf) {
 				Rule rule = new Rule(lhs, rhs);
 				rule.setConfidence(confidence);
@@ -296,34 +312,36 @@ public class ItemsetGenerator {
 		}
 	}
 	
-	//support(lhs U rhs)/support(rhs)
-	private double calculateConfidence(Itemset lhs, Itemset rhs) {
+	private double calculateSupport(Itemset is) {
+		
+		double support = 0.0;
+		double totalTransactions = transactions.size();
+		
+		for (Itemset transaction : transactions)
+			if (transaction.contains(is))
+				support = support + 1.0;
+		
+		return support/totalTransactions;
+	}
 	
-		double confidence = 0.0;
-		Itemset union = new Itemset();
-		
-		for (String s : lhs.getItems())
-			union.addElement(s);
-		
-		for (String s : rhs.getItems())
-			union.addElement(s);
-		
-		confidence = (calculateSupport(union))/(calculateSupport(lhs));
+	//support(lhs U rhs)/support(lhs)
+	private double calculateConfidence(Itemset union, Itemset lhs, Itemset rhs) {
+	
+		double confidence = 1.0 * union.getSupport() / lhs.getSupport();
 		
 		return confidence;
 	}
 	
 	private void generateOutput() {
-		
 		try {
-			writer.write("All Large Itemsets:\n");
-			for (Itemset is : largeItemSets) 
-				writer.write(is.toString() + ", Support: " + is.getSupport() + "\n");
+			writer.write("==Large itemsets (min_sup=" + min_support + ")\n");
+			for (Itemset is : largeItemSets)
+				writer.write(is.toString() + " Support: " + String.format("%.4f", is.getSupport()) + "\n");
 			
-			writer.write("\nAll Association Rules:\n");
+			writer.write("\n==High-confidence association rules (min_conf=" + min_conf + ")\n");
 			for (Rule rule : rules) {
-				writer.write(rule.toString() + " (Support: " + rule.getSupport() + 
-						" , Confidence: " + rule.getConfidence() + ")\n");
+				writer.write(rule.toString() + " (Support: " + String.format("%.4f", rule.getSupport()) + 
+						" , Confidence: " + String.format("%.4f", rule.getConfidence()) + ")\n");
 			}
 			
 			
@@ -340,7 +358,7 @@ public class ItemsetGenerator {
 			
 			//read the schema file
 			
-			BufferedReader br = new BufferedReader(new FileReader("schema.txt"));
+			BufferedReader br = new BufferedReader(new FileReader("data/schema.txt"));
 			
 			//hard-coding the value here, it can be read from schema-format.txt to make it generic
 			
@@ -364,15 +382,17 @@ public class ItemsetGenerator {
 					
 					int k = 0;
 					
-					BufferedReader reader = new BufferedReader(new FileReader(columnName + ".range"));
+					BufferedReader reader = new BufferedReader(new FileReader("data/" + columnName + ".range"));
 					String value;
 					while (k <= partitionNumber && (value = reader.readLine()) != null ) {
 						partitions[k] = value;
 						++k;
 					}
+					reader.close();
 					rangeMap.put(columnName, partitions);
 				}
 			}
+			br.close();
 			
 			writer.write("\nFollowing are the range values for items listed above, where applies: \n");
 			
@@ -407,10 +427,5 @@ public class ItemsetGenerator {
 		}
 		
 		
-	}
-	
-	public static void main(String[] args) throws IOException {
-		ItemsetGenerator generator = new ItemsetGenerator();
-		generator.generateAssociations("output-full.txt", 0.1, 0.5);
-	}
+	}	
 }

@@ -1,10 +1,20 @@
 package generator;
 import java.util.*;
 
+/*
+ * Itemset
+ * Save support for each itemset
+ * Use a TreeSet to store all items to ensure ordering
+ */
 public class Itemset implements Comparable<Itemset> {
 	
 	public Itemset() {
 		itemSet = new TreeSet<String>();
+		support = 0.0;
+	}
+	
+	public Itemset(TreeSet<String> items) {
+		itemSet = items;
 		support = 0.0;
 	}
 	
@@ -33,6 +43,9 @@ public class Itemset implements Comparable<Itemset> {
 		return support;
 	}
 	
+	/*
+	 * Check if two itemsets contain the same items
+	 */
 	public boolean containsSameItems(Itemset is) {
 		
 		boolean retval = true;

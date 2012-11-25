@@ -2,6 +2,9 @@ package data;
 
 import java.io.FileNotFoundException;
 
+/*
+ * Load a database from the datafile and the given schema
+ */
 public class DataLoader {
 	
 	protected String dataFileName;
@@ -16,6 +19,7 @@ public class DataLoader {
 		Schema schema = Schema.readSchema(schemaFileName);
 		Database db = new Database(schema);
 		
+		// PASS 1: Read all lines and insert into the database
 		RecordReader rr = null;
 		try {
 			rr = new CSVRecordReader(schema, dataFileName);
@@ -35,13 +39,14 @@ public class DataLoader {
 			}
 		}
 		
+		// PASS 3: Append a unique prefix to each column values
 		db.appendPrefix();
 		
 		return db;
 	}
 	
 	public static void main(String[] args) {
-		Database db = new DataLoader("boiler-noheader.csv", "schema.txt").load();
-		db.export("output-full.txt");
+		Database db = new DataLoader("data/boiler-noheader.csv", "data/schema.txt").load();
+		db.export("data/integrated-dataset.txt");
 	}
 }
