@@ -203,22 +203,43 @@ Example rules: <br>
 [AGE-26-30] => [DUALFUEL-Not Dual] (Support: 0.1770 , Confidence: 0.8902) <br>
 [AGE-26-30] => [PRIMARY-#6] (Support: 0.1432 , Confidence: 0.7200) <br>
 
-<br><br>
+<br>
 
-<li>#4 fuel is more energy efficient than #6 fuel</li>
+<li>#4 fuel type is used for smaller areas, resulting in lower consumption.  #6 fuel type is user for larger areas, resulting in higher consumption</li>
 Example rules: <br>
 [CONSUMPTION-0, DUALFUEL-Not Dual] => [PRIMARY-#4] (Support: 0.1081 , Confidence: 0.8011) <br>
 [AREA-4, CONSUMPTION-4] => [PRIMARY-#6] (Support: 0.1189 , Confidence: 0.8919) <br>
 [CAPACITY-4, CONSUMPTION-4] => [PRIMARY-#6] (Support: 0.1248 , Confidence: 0.8900) <br>
+[AREA-0] => [PRIMARY-#4]<br>
 
-<br><br>
+
+<br>
 
 <li>Capacity and the type of fuel are major factors to energy consumption</li>
 Example rules: <br>
 [CAPACITY-0, PRIMARY-#4] => [CONSUMPTION-0] (Support: 0.1264 , Confidence: 0.7564) <br>
 [CAPACITY-4, PRIMARY-#6] => [CONSUMPTION-4] (Support: 0.1248 , Confidence: 0.7271) <br>
 
-<br><br>
+<br>
+
+<li>Most smaller area do not have dual fuel boilers installed</li>
+Example rules:<br>
+[AREA-0] => [DUALFUEL-Not Dual] (Support: 0.1508 , Confidence: 0.7537)<br>
+
+<br>
+
+<li>Higher capacity boilers are needed to serve larger areas</li>
+Example rules:<br>
+[AREA-4] => [CAPACITY-4] (Support: 0.1449 , Confidence: 0.7234)<br>
+
+<br>
+
+<li>The net fuel consumption by larger boilers is higher</li>
+Example rules:<br>
+[CAPACITY-4] => [CONSUMPTION-4] (Support: 0.1402 , Confidence: 0.7173)<br>
+[CONSUMPTION-4] => [CAPACITY-4] (Support: 0.1402 , Confidence: 0.7004)<br>
+
+<br>
 
 </ul>
 
