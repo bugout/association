@@ -140,10 +140,44 @@ The last field '#partitions' is especially useful to process numerical values. N
 
 
 <b>Internal Design</b> <br>
-TODO.
-
-
+<p>
+As listed above, there are two key modules in the project - <br>
+<ol>
+<li>The high level procedure to generate the integrated-dataset.txt file is described in the section above.   The 'data' module contains the code to generate the intergrated-dataset from the downloaded raw data.  As explained in the previous section, certain items are divided in ranges.  This module generates the applicable range files as well.  The range files are stored in the data folder.</li> 
+<br>
+<li>The second package 'generator' contains the list of classes required to generate the association rules.  Below is the summary of the classes included in this package and our design decisions - <br>
+<br><ul>
+<li><b>Itemset.java</b> - This class is the data class to store the itemset.  It stores the items in a TreeSet data structure.  Thus, items are always stored in 'ascending' order based on the name of the item.  This class implements the Comparable interface, which allows the itemsets to be ordered based on the support values.</li><br>
+<li><b>Rule.java</b> - This class is the data class to store the rules.  This class implements the Comparable iterface, which allows the rules to be ordered based on the confidence values.</li><br>
+<li><b>DBAccess</b> - This class contains the methods to create database connections, generate and execute the queries.  Under default settings, this portion of the code is not run.</li><br>
+<li><b>ItemsetGenerator.java</b> - This class is the main processor class.  It contains methods to read the integrated-dataset file, evaluate large datasets, calcuate values of support and confidence, and generate the assocation rules.  This class also contains the method to do a self-join on the large itemsets, as required by the a-priori algorithm.</li>
+</ul>
+</li>
+</ol>
+<b>a-priori Algorithm</b> - We implement the algorithm exactly as described in the  Section 2.1 of the Agrawal and Srikant paper in VLDB 1994.  We pre-process the data before running it through the algorithm, so that it can be processed through the algorithm to generate meaningful associations.<br>
+<br> 
+ Generating Large Itemsets - As mentioned in the algorithm, we have to generate all large itemsets that have support higher than minimum required support.  These itemsets are inspected for high-confidence associations.  The large itemsets, that contains k items are generated using following join - 
 <br><br>
+SELECT p.item1, p.item2, . . . . p.itemk-1, q.itemk-1<br>
+from L_k-1 p, L_k-1 q<br>
+where p.item1 = q.item1, . . ., p.itemk-2 = q.itemk-2,<br>
+p.itemk-1 < q.itemk-1;<br>
+<br>
+We provide two alternative methods to implement the above join.  The 'switch' (usesql boolean data member of ItemsetGenerator class) to toggle between these two methods in hard-coded in the code, and is set to use the second method (join is done in the memory).  The second method provides faster speeds, and works really well if the dataset can fit in the memory.
+<br>
+<ol>
+<li>
+<b>Using sqlite database</b> - We create a sqlite database table with k columns and do a self-join on that table based on the query above.  The queries to create the table, insert and join the data are built on the fly based on the value k and large itemsets evaluated in (k-1)th iteration.  
+</li>
+<br>
+<li>
+<b>Join in the memory</b> - By doing a join in the memory, we store all the itemsets in a List.  These itemsets store all the items in a TreeSet.  We do a self join on this list of Itemsets based on the query above.  By default, the query is executed using this method in our code.
+</li>
+</ol>
+<br>
+<b>Optimization</b> - As described in the algorithm, we remove all large itemsets from the large itemsets list if their subsets are not in the list.  
+</p>
+
 
 <b>Example run</b> <br>
 The command line specification of our example run is: <br><br>
