@@ -47,6 +47,6 @@ public class DataLoader {
 	
 	public static void main(String[] args) {
 		Database db = new DataLoader("data/boiler-noheader.csv", "data/schema.txt").load();
-		db.export("data/integrated-dataset.txt");
+		db.export("data/integrated-dataset.csv");
 	}
 }
