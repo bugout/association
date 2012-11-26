@@ -343,10 +343,14 @@ public class ItemsetGenerator {
 				writer.write(rule.toString() + " (Support: " + String.format("%.4f", rule.getSupport()) + 
 						" , Confidence: " + String.format("%.4f", rule.getConfidence()) + ")\n");
 			}
+			writer.flush();
+		}
+		catch (IOException e) {
+			System.err.println("Error generating output file: " + e.getMessage() + ". Please resolve the IO error.");
+		}
 			
-			
+		try {	
 			//print the term range
-			
 			//create a set of all the terms in the rules
 			Set<String> items = new TreeSet<String>();
 			
@@ -374,7 +378,7 @@ public class ItemsetGenerator {
 				try {
 					partitionNumber = Integer.parseInt(schemaEntry[3]);
 				} catch (NumberFormatException e) {
-					System.err.println("Error in schema file, one or more range info in Example-run.txt file might be missing");
+					System.err.println("Error in schema file, one or more ranges info in Example-run.txt file might be missing");
 				}
 				
 				if (0 < partitionNumber) {
@@ -416,16 +420,17 @@ public class ItemsetGenerator {
 					}
 				}
 			}
-			
-			
 			writer.flush();
-			writer.close();
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Error generating the range in the output file: " + e.getMessage());
 		}
 		
+		try {
+			writer.close();
+		} catch (IOException e) {
+			System.err.println("Error closing the FileWriter: " + e.getMessage());
+		}
 		
 	}	
 }
